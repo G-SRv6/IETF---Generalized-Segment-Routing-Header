@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc tocompact="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="no"?>
+<?rfc comments="yes"?>
+<?rfc inline="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-lc-6man-generalized-srh-03"
+     ipr="trust200902" updates="">
+  <front>
+    <title abbrev="G-SRH">Generalized Segment Routing Header</title>
+
+    <author fullname="Zhenbin Li" initials="Z." surname="Li">
+      <organization>Huawei Technologies</organization>
+
+      <address>
+        <postal>
+          <street>Huawei Campus, No. 156 Beiqing Rd.</street>
+
+          <city>Beijing</city>
+
+          <region/>
+
+          <code>100095</code>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>lizhenbin@huawei.com</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Cheng Li" initials="C." surname="Li">
+      <organization>Huawei Technologies</organization>
+
+      <address>
+        <postal>
+          <street>Huawei Campus, No. 156 Beiqing Rd.</street>
+
+          <city>Beijing</city>
+
+          <region/>
+
+          <code>100095</code>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>c.l@huawei.com</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Weiqiang Cheng" initials="W." surname="Cheng">
+      <organization>China Mobile</organization>
+
+      <address>
+        <postal>
+          <street/>
+
+          <city/>
+
+          <region/>
+
+          <code/>
+
+          <country/>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>chengweiqiang@chinamobile.com</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Chongfeng Xie" initials="C." surname="Xie">
+      <organization>China Telecom</organization>
+
+      <address>
+        <postal>
+          <street>China Telecom Information Science&amp;Technology Innovation
+          park, Beiqijia Town,Changping District</street>
+
+          <city>Beijing</city>
+
+          <region/>
+
+          <code/>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>xiechf@chinatelecom.cn</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Cong Li" initials="C." surname="Li">
+      <organization>China Telecom</organization>
+
+      <address>
+        <postal>
+          <street>China Telecom Information Science&amp;Technology Innovation
+          park, Beiqijia Town,Changping District</street>
+
+          <city>Beijing</city>
+
+          <region/>
+
+          <code/>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>licong@chinatelecom.cn</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Hui Tian" initials="H." surname="Tian">
+      <organization>CAICT</organization>
+
+      <address>
+        <postal>
+          <street/>
+
+          <city>Beijing</city>
+
+          <region/>
+
+          <code/>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>tianhui@caict.ac.cn</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <author fullname="Feng Zhao" initials="F." surname="Zhao">
+      <organization>CAICT</organization>
+
+      <address>
+        <postal>
+          <street>Beijing</street>
+
+          <city/>
+
+          <region/>
+
+          <code/>
+
+          <country>China</country>
+        </postal>
+
+        <phone/>
+
+        <facsimile/>
+
+        <email>zhaofeng@caict.ac.cn</email>
+
+        <uri/>
+      </address>
+    </author>
+
+    <date day="10" month="February" year="2021"/>
+
+    <area>Routing Area</area>
+
+    <workgroup>SPRING Working Group</workgroup>
+
+    <abstract>
+      <t>Generalized SRv6 network programming defines the enhanced mechanisms
+      of SRv6 to encode SRv6 SIDs, Compressed SIDs and even the MPLS labels or
+      IPv4 tunnel information in a single SRH. This type of SRH is called
+      Generalized SRH (G-SRH), which can reduce the overhead of SRv6 and also
+      provide more flexibility for network programming. This document defines
+      the encapsulation and packet processing of G-SRH.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>Segment routing (SR) <xref target="RFC8402"/> is a source routing
+      paradigm that explicitly indicates the forwarding path for packets at
+      the ingress node by inserting an ordered list of instructions, called
+      segments.</t>
+
+      <t>When segment routing is deployed on the IPv6 data plane, it is called
+      SRv6 <xref target="I-D.ietf-6man-segment-routing-header"/>. For support
+      of SR, a new routing header called Segment Routing Header (SRH), which
+      contains a list of SIDs and other information, has been defined in <xref
+      target="I-D.ietf-6man-segment-routing-header"/>. In use cases like
+      Traffic Engineering, an ordered SID List with multiple SIDs is inserted
+      into the SRH to steer packets along an explicit path.</t>
+
+      <t>The overhead of SIDs (16 bytes per SID) in SRH proposes challenges
+      for packet processing and payload efficiency. <xref
+      target="I-D.li-spring-compressed-srv6-np"/> proposes a mechanism for
+      reducing the overhead of SRv6 by using the Compressed SID (C-SID) in
+      SRH. However it requires all the middle segment endpoint nodes to
+      support compression.</t>
+
+      <t>[I-D.cl-spring-generalized-srv6-np] proposes Generalized Segment
+      Routing over IPv6 (G-SRv6) Networking Programming, which supports to
+      encode multiple types of Segments in an SRH, called Generalized
+      SRH(G-SRH). These segments can be called Generalized Segment, and the ID
+      can be Generalized Segment Identifier(G-SID), which may include an SRv6
+      SID(128 bits), C-SIDs, MPLS labels, or IPv4 tunnel information.
+      Therefore, G-SRv6 does not require all the nodes along the path to be
+      compression capable, which supports incremental deployment, and brings
+      benefits to the networks. Moreover it provides more flexibilities for
+      network programming. This document defines the encapsulation and packet
+      processing of Generalized SRH.</t>
+    </section>
+
+    <section title="Terminology">
+      <t>This document makes use of the terms defined in <xref
+      target="I-D.ietf-6man-segment-routing-header"/>, <xref
+      target="RFC8402"/> and <xref target="RFC8200"/>, and the reader is
+      assumed to be familiar with that terminology. This document introduces
+      the following new terms:</t>
+
+      <t>C-SRH: Compressed Segment Routing Header</t>
+
+      <t>C-SID: Compressed Segment Identifier</t>
+
+      <t>G-SRH: Generalized Segment Routing Header</t>
+
+      <t>G-SID: Generalized Segment Identifier.</t>
+
+      <section title="Requirements Language">
+        <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+        "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+        "OPTIONAL" in this document are to be interpreted as described in BCP
+        14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only
+        when, they appear in all capitals, as shown here.</t>
+      </section>
+    </section>
+
+    <section title="Generalized Segment Identifier">
+      <t>A G-SID is a 128 bits value, and it can be used for carry multiple
+      types of Segment ID or segment information, so may contain:</t>
+
+      <t><list style="symbols">
+          <t>an SRv6 SID</t>
+
+          <t>a compression G-SID</t>
+
+          <t>an MPLS G-SID</t>
+
+          <t>an IPv4 G-SID</t>
+        </list></t>
+
+      <section title="SRv6 G-SID">
+        <t>SRv6 SID is a type of G-SID. A G-SID contains a single SRv6 SID,
+        and does not change anything of SRv6 SID.</t>
+      </section>
+
+      <section title="Compression G-SID">
+        <t>As per <xref target="I-D.li-spring-compressed-srv6-np"/>, a C-SID
+        is a sub-set of a compressable SRv6 SID, which can be used for routing
+        the packets in compressed SRv6 network programming. The format of
+        compressable SID and C-SID is shown below. The argument part is
+        specified by use cases, and it is zero by default. It is shared by the
+        compressable SRv6 SIDs in a C-SRv6 sub-path.</t>
+
+        <t><figure>
+            <artwork><![CDATA[ 
+  0         Variable Length            32 bits                128 bits
+  +--------------------------------------------------------------+
+  |             Common Prefix   |  C-SID         | Argument      |
+  +--------------------------------------------------------------+
+  |<-------- Locator ---------------->|<-FuncID->|<--Argument -->|
+                                |<--->|
+                                   | 
+                        Different part of Locator     
+  
+           Figure 1. 32 bits C-SID in Compressable SRv6 SID
+
+]]></artwork>
+          </figure></t>
+
+        <t>A compression G-SID shown in Figure 2 may contain several C-SIDs
+        and optional padding. when C-SID is a 32 bits value, a compression
+        G-SID can consist of 4 C-SIDs. If the length of C-SIDs in a G-SID is
+        less than 128 bits, then padding is required.</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 0                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 1                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 2                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 3                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                (a)
+
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         Padding                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         Padding                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 0                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         C-SID 1                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                (b)
+
+                     Figure 2. Compression G-SID
+
+]]></artwork>
+          </figure></t>
+      </section>
+
+      <section title="MPLS G-SID">
+        <t>An MPLS G-SID shown in Figure 3 can contain 4 MPLS Label
+        Encapsulations, if number of MPLS Label Encapsulations is less than 4,
+        then padding is required in G-SID to align with 128 bits.</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 0                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 1                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 2                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 3                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                (a)
+
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         Padding                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                         Padding                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 0                     |  TC |1|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 1                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                (b)
+
+                     Figure 3. MPLS G-SID
+
+]]></artwork>
+          </figure></t>
+      </section>
+
+      <section title="IPv4 G-SID">
+        <t>An IPv4 G-SID shown in Figure 4 can contain 128 bits information of
+        IPv4 tunnel. The format of the IPv4 G-SID is shown below.</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Type  |               Tunnel Parameters                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Src Address                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Dest Address                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       Tunnel Parameters                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                     Figure 4. IPv4 G-SID
+
+]]></artwork>
+          </figure></t>
+
+        <t/>
+      </section>
+    </section>
+
+    <section title="Generalized Segment Routing Header (G-SRH)">
+      <t>Generalized Segment Routing Header (G-SRH) is an enhancement of the
+      SRH, and it supports to encode different types of G-SIDs in a single
+      SRH. The format of G-SRH is shown as below.</t>
+
+      <t><figure align="center">
+          <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Next Header   |  Hdr Ext Len  |  Routing Type  | Segments Left|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Last Entry   |     Flag  |CL |              Tag              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |        Generalized Segment List[0] (128 bits value)           |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+                               ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |        Generalized Segment List[n] (128 bits value)           |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //                                                             //
+    //         Optional Type Length Value objects (variable)       //
+    //                                                             //
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+              Figure 5. Generalized Segment Routing Header
+
+]]></artwork>
+        </figure></t>
+
+      <t>Where:</t>
+
+      <t><list style="symbols">
+          <t>Next Header, Hdr Ext Len, Routing Type, Segments Left, Last Entry
+          and Tag are the same as those defined in <xref
+          target="I-D.ietf-6man-segment-routing-header"/>.</t>
+
+          <t>CL (C-SID Left): 2-bit unsigned integer to indicate the index of
+          C-SID in the Compression G-SID. There can be four 32-bit C-SIDs
+          within a Compression G-SID.</t>
+
+          <t>Segment List[n]: 128-bit G-SID representing the nth Generalized
+          Segment in the Segment List. In G-SRH, the Generalized Segment can
+          be an SRv6 SID, Compression G-SID, MPLS G-SID, or IPv4 G-SID,
+          etc.</t>
+
+          <t>Type Length Value (TLV): It is the same as that defined in <xref
+          target="I-D.ietf-6man-segment-routing-header"/>.</t>
+        </list></t>
+
+      <section title="G-SRH for SRv6 Compression">
+        <t>When an SRv6 path travels normal SRv6 domains and compressed SRv6
+        domains, the SRv6 SID and Compression G-SID(containing C-SIDs) can be
+        encoded in a single G-SRH. For easier understanding, this document
+        assumes that the compressable consists of 96 bits common prefix and 32
+        bits C-SID, while actually the length of common prefix can be
+        configured as less than 96 to fit the address planning of the
+        networks. The encoding can be shown as follows.</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Next Header   |  Hdr Ext Len  |  Routing Type  | Segments Left|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Last Entry   |    Flag   |CL |               Tag             |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |        Generalized Segment List[0] (128 bits value)           |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    .                            ...                              . 
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                      Optional Padding                         |    
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    Compression
+    |                          C-SID [0]                            |      G-SID 0
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        
+    .                           ...                                 .        ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+           
+    |                          C-SID 3                              |   
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                          C-SID 0                              |    
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+      
+    |                          C-SID 1                              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    Compression
+    |                          C-SID 2                              |      G-SID k
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+      
+    |                          C-SID 3                              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                       Common Prefix                           |          
+    |                                                               |    Compressable 
+    |                                                               |      SRv6 SID 
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+          
+    |                         C-SID 0                               |          
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+         ---
+    |                                                               |
+    |        Generalized Segment List[n1] (128 bits value)          |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+                               ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |        Generalized Segment List[n] (128 bits SRv6 SID)        |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //                                                             //
+    //         Optional Type Length Value objects (variable)       //
+    //                                                             //
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                 Figure 6. G-SRH for SRv6 Compression
+
+]]></artwork>
+          </figure></t>
+
+        <t>Where:</t>
+
+        <t><list style="symbols">
+            <t>Common Prefix: 96-bit value for the common prefix shared by a
+            group of Compressable SRv6 SIDs. Operators are free to configure
+            the length and the value of the common prefix based on the address
+            planning of their networking. In a Compressable SRv6 SID, when the
+            length of Common prefix is less than 96, and the length of the
+            C-SID is less than 32 bits, the the rest bits can be used as
+            arguments.</t>
+
+            <t>C-SID: 32-bit compressed SID of a Compressable SRv6 SID.</t>
+
+            <t>Padding: Must be zero. When the length of C-SIDs within G-SID
+            is less than 128 bits within a compression G-SID, then padding is
+            needed.</t>
+          </list></t>
+      </section>
+
+      <section title="G-SRH for Crossing SR-MPLS Domains">
+        <t>The G-SRH support to encode the MPLS labels and SRv6 SID or
+        Compression G-SID within a G-SRH. The G-SRv6 path for crossing SR-MPLS
+        domains can be encoded in the G-SRH as follows:</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Next Header   |  Hdr Ext Len  |  Routing Type  | Segments Left|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Last Entry   |     Flag  |CL |               Tag             |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |         Generalized Segment List[0] (128 bits value)          |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    .                              ...                              . 
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+       ---
+    |                      Optional Padding                         |      MPLS
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+     G-SID 0
+    |           Label 0                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+     
+    .                              ...                              . 
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 3                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+       ---
+    |           Label 0                     |  TC |S|     TTL       |   
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+    |           Label 1                     |  TC |S|     TTL       |       MPLS
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+      G-SID n
+    |           Label 2                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Label 3                     |  TC |S|     TTL       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                                                               |          
+    |         Generalized Segment List[n2] (128 bits value)         |       End.M
+    |                                                               |      SRv6 SID
+    |                                                               |          
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                                                               |
+                               ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |         Generalized Segment List[n2] (128 bits value)         |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //                                                             //
+    //         Optional Type Length Value objects (variable)       //
+    //                                                             //
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+            Figure 7. G-SRH for Crossing SR-MPLS Domains
+
+]]></artwork>
+          </figure></t>
+
+        <t/>
+
+        <t>Where:</t>
+
+        <t><list style="symbols">
+            <t>Label: 32-bit MPLS label.</t>
+
+            <t>TC: 3-bit value for traffic class of MPLS label
+            encapsulation.</t>
+
+            <t>S: 1-bit flag to indicate the bottom of MPLS label stack. It
+            can be used for indicating the end of the MPLS label stack.</t>
+
+            <t>TTL: 8-bit value for TTL of MPLS label encapsulation.</t>
+
+            <t>Padding: When the number of MPLS labels is less than 4 in an
+            MPLS G-SID, then padding is required to align with 128 bits.</t>
+          </list></t>
+      </section>
+
+      <section title="G-SRH for Crossing IPv4 Domains">
+        <t>The G-SRv6 path for crossing IPv4 domains can be encoded in the
+        G-SRH as follows:</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Next Header   |  Hdr Ext Len  |  Routing Type  | Segments Left|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Last Entry   |     Flag   |CL|              Tag              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |         Generalized Segment List[0] (128 bits value)          |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+                               ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  
+    |                                                               |          
+    |         Generalized Segment List[n3] (128 bits value)         |      
+    |                                                               |     
+    |                                                               |          
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    | Type  |               Tunnel Parameters                       |   
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+    |                       IPv4 Src Address                        |       IPv4
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+       G-SID
+    |                       IPv4 Dest Address                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       Tunnel Parameters                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                                                               |
+    |         Generalized Segment List[n1] (128 bits vlaue)         |       End.4
+    |                                                               |      SRv6 SID
+    |                                                               |      
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+        ---
+    |                                                               |
+                               ...
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |        Generalized Segment List[n2] (128 bits value)       |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //                                                             //
+    //         Optional Type Length Value objects (variable)       //
+    //                                                             //
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+            Figure 8. G-SRH for Crossing IPv4 Domains
+
+]]></artwork>
+          </figure></t>
+
+        <t>Where:</t>
+
+        <t><list style="symbols">
+            <t>Type: 4-bit value to indicate the types of IPv4 tunnel.</t>
+
+            <t>IPv4 Src Address: 32-bit value for the source address of the
+            IPv4 tunnel.</t>
+
+            <t>IPv4 Dest Address: 32-bit value for the destination address of
+            the IPv4 tunnel.</t>
+
+            <t>Tunnel Parameters: tunnel parameters of the IPv4 tunnel except
+            the source address and destination address.</t>
+          </list></t>
+
+        <t>This document defines the encoding for IPv4 UDP tunnel and VxLAN
+        tunnel.</t>
+
+        <t>The IPv4 UDP tunnel information encapsulated in the G-SRH is as
+        follows:</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Type  |                   Reserved                            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Src Address                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Dest Address                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |             Src Port          |        Dest Port              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                   Figure 9. G-SID for IPv4 UDP Tunnel
+
+]]></artwork>
+          </figure></t>
+
+        <t>Where,</t>
+
+        <t><list style="symbols">
+            <t>Reserved: It is the reserved field and MUST be set as 0.</t>
+
+            <t>Src Port: 16-bit value for the source port of the IPv4 UDP
+            tunnel.</t>
+
+            <t>Dest Port: 16-bit value for the destination port of the IPv4
+            UDP tunnel.</t>
+          </list></t>
+
+        <t>The IPv4 VXLAN tunnel information encapsulated in the G-SRH is as
+        follows:</t>
+
+        <t><figure align="center">
+            <artwork><![CDATA[
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Type  | Resv  |                  VN ID                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Src Address                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       IPv4 Dest Address                       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |             Src Port          |        Dest Port              |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                   Figure 10. G-SID for IPv4 VXLAN Tunnel
+
+]]></artwork>
+          </figure></t>
+
+        <t>Where,</t>
+
+        <t><list style="symbols">
+            <t>Resv: It is the reserved field and MUST be set as 0.</t>
+
+            <t>VN ID: 24-bit value for the VN ID of the IPv4 VXLAN tunnel.</t>
+
+            <t>Src Port: 16-bit value for the source port of the IPv4 VXLAN
+            tunnel.</t>
+
+            <t>Dest Port: 16-bit value for the destination port of the IPv4
+            VXLAN tunnel.</t>
+          </list></t>
+
+        <t>The other types of IPv4 tunnel information will be described in the
+        future.</t>
+      </section>
+    </section>
+
+    <section title="Packet Processing">
+      <t>This section describes the packet processing of G-SRH.</t>
+
+      <section title="Crossing SRv6 Compression Domains">
+        <t>There are several cases when encoding the SRv6 SID and Compressable
+        SRv6 SID in a single G-SRH.</t>
+
+        <t><list style="symbols">
+            <t>SRv6 path</t>
+
+            <t>Compressed SRv6 path</t>
+
+            <t>SRv6 path -&gt; Compressed SRv6 path</t>
+
+            <t>Compressed SRv6 path -&gt; SRv6 path</t>
+
+            <t>Combination of the above options.</t>
+          </list>The ingress node of G-SRv6 encodes the G-SID list in G-SRH
+        based on the type of path and the order of SIDs.</t>
+
+        <t>If the beginning of the G-SRv6 path is a Compressed SRv6 sub-path,
+        the CL MUST be initiated accordingly.</t>
+
+        <t>If the first Compressable SRv6 SID is inserted in the G-SRH, then
+        the CL MUST be set as 0. If the first Compressable SRv6 SID is
+        reduced, the the CL MUST set to 3, which points to the first C-SID in
+        the first G-SID.</t>
+
+        <t>If the beginning of the G-SRv6 path is a SRv6 sub-path, and there
+        is any compressable SRv6 SID in the list, the CL MUST be set to 0.</t>
+
+        <t>If the G-SRv6 path is a SRv6 path , then the CL SHOULD be set to 0,
+        and it MUST be ignored in G-SRH processing.</t>
+
+        <t>When a compression G-SID is encoded in the G-SRH, new actions
+        should be defined for processing it. When the SL &gt;0, the pseudo
+        code is shown below:</t>
+
+        <t><figure>
+            <artwork><![CDATA[ 01. If ipv6 DA is a normal local SRv6 SID,                    //Ref1
+ 02.     SL- -;  DA = SRH [SL];
+ 03.     Process the packet based on the type of SID
+ 04.     Forward the packet to the new DA;
+ 05. if ipv6 DA is a local Compressable SRv6 SID                //Ref2
+ 06.     If CL = 0                           
+ 07.          SL- -; CL = 3;                    
+ 08.          DA[CP..CP+31] = SRH[SL][CL] ;  
+ 09.     Else                                 
+ 10.          CL --;                           
+ 11.          DA[CP..CP+31] = SRH[SL][CL] 
+ 12.     Process the packet based on the type of SID
+ 13.     Forward the packet to the new DA;
+ 14. if ipv6 DA is a local Compressable SRv6 SID with EOC flavor //Ref3
+ 15.     SL --
+ 16.     CL = 0                         
+ 17.     DA = SRH[SL]
+ 18.     Process the packet based on the type of SID
+ 19.     Forward the packet to the new DA
+ 20. else
+ 21.     other G-SIDs processing;
+
+]]></artwork>
+          </figure></t>
+
+        <t><list style="symbols">
+            <t>Ref1: nothing is changed when the IPv6 DA is an SRv6 SID, the
+            SID will be processed as per <xref
+            target="I-D.ietf-spring-srv6-network-programming"/>, so G-SRH is
+            compatible with SRH.</t>
+
+            <t>Ref2: when the IPv6 DA is a local compressable SRv6 SID, the
+            node should process it based on the type of SID and update the
+            IPv6 DA based on the value of CL. If the CL is 0, the next C-SID
+            should be selected from the first C-SID in the next compression
+            G-SID and updated to the IPv6 DA. If the CL is greater than 0,
+            then the next C-SID in this G-SID should be updated to the IPv6
+            DA.</t>
+
+            <t>Ref3: If the IPv6 DA is a local Compressable SRv6 SID with EOC
+            flavor, means this is the last C-SID of the C-SIDs list of this
+            compression SRv6 sub-path. The next G-SID should be updated to the
+            IPv6 DA, and the CL is set to 0 in order to help the process of
+            the next Compression SRv6 SID.</t>
+          </list></t>
+
+        <t>When SL = 0, the pseudo code is shown below.</t>
+
+        <t><figure>
+            <artwork><![CDATA[ 01. If ipv6 DA is a local SRv6 SID                             //Ref1
+ 02.     SRv6 processing based on the type of SID
+ 03. If ipv6 DA is a local compressable SID                     //Ref2
+ 04.     If CL = 0                                   
+ 05.         SRv6 processing based on the type of SID
+ 06.     Else                                        
+ 07.         CL --;                                      
+ 08.         DA[CP..CP+31] = SRH[SL][CL]; 
+ 09.         Process the packet based on the type of SID
+ 09.         Forward the packet to the new DA;
+ 10. If ipv6 DA is a local compressable SID with EOC Flavor     //Ref 3
+ 11.     Process the packet based on the type of SID
+ 12. Else
+ 13.     Other G-SIDs processing;
+
+
+]]></artwork>
+          </figure></t>
+
+        <t/>
+
+        <t><list style="symbols">
+            <t>Ref1: nothing is changed when the IPv6 DA is an SRv6 SID, the
+            SID will be processed as per <xref
+            target="I-D.ietf-spring-srv6-network-programming"/>, so G-SRH is
+            compatible with SRH.</t>
+
+            <t>Ref2: when the IPv6 DA is a local compressable SRv6 SID, the
+            node should process it based on the type of SID and update the
+            IPv6 DA based on the value of CL. If the CL is 0, meaning this
+            C-SID is the last segment, the node should process the SID and the
+            G-SID processing should be finished. If the CL is greater than 0,
+            the next C-SID in the G-SID should be updated to the IPv6 DA.</t>
+
+            <t>Ref3: If the IPv6 DA is a local Compressable SRv6 SID with EOC
+            flavor, meaning this is the last C-SID in the C-SIDs list of this
+            compression SRv6 sub-path, the node should process the SID and the
+            G-SID processing should be finished.</t>
+          </list></t>
+      </section>
+
+      <section title="Crossing SR-MPLS Domains">
+        <t>In some scenarios such as SD-WAN, an SRv6 packet may cross MPLS
+        networking. Usually, the packet can be steered into an SR-MPLS policy
+        based on END.BM SID <xref
+        target="I-D.ietf-spring-srv6-network-programming"/>. For reducing
+        configuration in the middle nodes, this document proposes END.M (End
+        function with SR-MPLS path instantiation) to indicate the SR-MPLS/MPLS
+        path by the MPLS label stack carried after it.</t>
+
+        <section title="END.M">
+          <t>An End.M SID indicates the beginning of the SR-MPLS SID list/MPLS
+          Label stack, and the S-bit in MPLS label indicates the end of the
+          MPLS label stack.</t>
+
+          <t>When a node processes an END.M SID, it copies the SR-MPLS SID
+          list/MPLS labels to the outer MPLS header, and updates the SL
+          pointing to the next G-SID after these MPLS G-SIDs, set the IPv6 DA
+          as the G-SRH[SL], and then forwards the packet based on the active
+          MPLS label.</t>
+
+          <t>The pesudo code is shown below:</t>
+
+          <t><figure>
+              <artwork><![CDATA[ 01. Copy the MPLS labels to MPLS header                //Ref1
+ 02. Update the SL point to next G-SID after the MPLS G-SID  
+ 03. Set the IPv6 DA as the SRH[SL]
+ 04. Forward the packet based on the active MPLS label
+]]></artwork>
+            </figure></t>
+
+          <t>Ref1. The Node will copy the MPLS labels within the MPLS G-SID to
+          the outer MPLS header. The end of the MPLS labels is indicated by
+          the S-bit in the MPLS label.</t>
+
+          <t>The MPLS G-SID MUST NOT be the last G-SID in the G-SID list.</t>
+        </section>
+      </section>
+
+      <section title="Crossing IPv4 Domains">
+        <t>In some scenarios such as SD-WAN, an SRv6 packet may cross IPv4
+        networking. Usually, the packet will be transported by an IPv6 over
+        IPv4 tunnel. This document proposes END.4 (End with IPv4 tunnel
+        instantiation) and END.B4 (End binding to an IPv4 tunnel) behaviors
+        for indicating the IPv4 tunnel.</t>
+
+        <section title="END.4">
+          <t>The End.4 indicates the instantiation of an IPv4 Tunnel, and the
+          parameter of this IPv4 Tunnel is carried by the IPv4 G-SID. An End.4
+          SID is never the last segment in a G-SID list.</t>
+
+          <t>When a node processes a END.4 SID, it will encapsulate an outer
+          IPv4 tunnel header according to the tunnel information in the
+          associated IPv4 G-SID, and set the SL point the next G-SID after the
+          IPv4 G-SIDs, update the inner IPv6 DA by G-SRH[SL], and then forward
+          the packet based on the outer IPv4 DA.</t>
+
+          <t>The pesudo code is shown below:</t>
+
+          <t><figure>
+              <artwork><![CDATA[ 01. Encapsulate the outer IPv4 tunnel header according to the 
+     information in IPv4 G-SID(IPv4 DA, SA, etc.)                     //Ref1 
+ 02. Update the SL point to next G-SID after the IPv4 G-SID
+ 03. Set the inner IPv6 DA as the SRH[SL]
+ 04. Forward the packet based on the outer IPv4 DA.
+]]></artwork>
+            </figure></t>
+
+          <t>Ref1: When encapsulating the outer IPv4 tunnel header, the source
+          address and destination address and tunnel related parameters are
+          learned from the IPv4 G-SID.</t>
+
+          <t>The IPv4 G-SID MUST NOT be the last G-SID in the G-SID list.</t>
+        </section>
+
+        <section title="END.B4">
+          <t>This is a variation of the End behavior, and it will be bound to
+          an IPv4 tunnel initiated at endpoint node, while the parameters of
+          this tunnel are not carried by SRH but maintained by node.</t>
+
+          <t>The parameters of the IPv4 tunnel associated to the END.B4 SID
+          can be configured and advertised in SID instantiation. This is out
+          of scope of this document, and will be described in other
+          documents.</t>
+
+          <t>An End.B4 SID is never the last segment in a SID list.</t>
+
+          <t>When a node processes an END.B4 SID, it will encapsulate an outer
+          IPv4 tunnel header based on the parameters binding to the End.B4
+          SID, and set the SL point the next G-SID, update the inner IPv6 DA
+          by G-SRH[SL], and then forward the packet based on the outer IPv4
+          DA.</t>
+
+          <t>The pseudo code is shown below.</t>
+
+          <t><figure>
+              <artwork><![CDATA[ 01. Encapsulate the outer IPv4 tunnel header according to
+     the parameters binding to the End.B4 SID                    //Ref1 
+ 02. Update the SL point to next G-SID after the IPv4 G-SID
+ 03. Set the inner IPv6 DA as the SRH[SL]
+ 04. Forward the packet based on the outer IPv4 DA.
+]]></artwork>
+            </figure></t>
+
+          <t>Ref1: When encapsulating the outer IPv4 tunnel header, the source
+          address and destination address and tunnel related parameters are
+          learned from the parameters binding to the SID, the information is
+          maintained at the node.</t>
+
+          <t/>
+        </section>
+      </section>
+    </section>
+
+    <section anchor="IANA" title="IANA Considerations">
+      <t>TBD</t>
+    </section>
+
+    <section anchor="Security" title="Security Considerations">
+      <t>TBD</t>
+
+      <t/>
+    </section>
+
+    <section title="Contributors">
+      <t><figure>
+          <artwork><![CDATA[Zhibo Hu
+Huawei Technologies
+huzhibo@huawei.com
+
+Yang Xia
+Huawei Technologies
+yolanda.xia@huawei.com
+
+]]></artwork>
+        </figure></t>
+    </section>
+
+    <section title="Acknowledgements ">
+      <t/>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119"?>
+
+      <?rfc include='reference.RFC.8174'?>
+
+      <?rfc include='reference.RFC.8200'?>
+
+      <?rfc include='reference.I-D.ietf-6man-segment-routing-header'?>
+
+      <?rfc include='reference.RFC.8402'?>
+
+      <?rfc include='reference.I-D.li-spring-compressed-srv6-np'
+?>
+    </references>
+
+    <references title="Informative References">
+      <?rfc include='reference.I-D.ietf-spring-srv6-network-programming'?>
+
+      <?rfc include='reference.I-D.filsfils-spring-srv6-net-pgm-illustration'?>
+
+      <?rfc s?>
+    </references>
+  </back>
+</rfc>
